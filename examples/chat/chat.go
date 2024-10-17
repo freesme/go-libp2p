@@ -48,18 +48,22 @@ import (
 	"github.com/multiformats/go-multiaddr"
 )
 
+// 网络流处理
 func handleStream(s network.Stream) {
 	log.Println("Got a new stream!")
 
+	// 为非阻塞读/写 创建缓冲流
 	// Create a buffer stream for non-blocking read and write.
 	rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
 
 	go readData(rw)
 	go writeData(rw)
 
+	// stream将会在你关闭前一直开启
 	// stream 's' will stay open until you close it (or the other side closes it).
 }
 
+// 读取数据流
 func readData(rw *bufio.ReadWriter) {
 	for {
 		str, _ := rw.ReadString('\n')
@@ -76,6 +80,7 @@ func readData(rw *bufio.ReadWriter) {
 	}
 }
 
+// 写数据流
 func writeData(rw *bufio.ReadWriter) {
 	stdReader := bufio.NewReader(os.Stdin)
 
@@ -93,6 +98,8 @@ func writeData(rw *bufio.ReadWriter) {
 }
 
 func main() {
+
+	//
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -123,6 +130,7 @@ func main() {
 		r = rand.Reader
 	}
 
+	// 初始化？
 	h, err := makeHost(*sourcePort, r)
 	if err != nil {
 		log.Println(err)
@@ -130,6 +138,7 @@ func main() {
 	}
 
 	if *dest == "" {
+		// 开启节点
 		startPeer(ctx, h, handleStream)
 	} else {
 		rw, err := startPeerAndConnect(ctx, h, *dest)
@@ -149,17 +158,17 @@ func main() {
 }
 
 func makeHost(port int, randomness io.Reader) (host.Host, error) {
-	// Creates a new RSA key pair for this host.
+	// Creates a new RSA key pair for this host. 为主机创建一个新的RSA密钥对
 	prvKey, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, randomness)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	// 0.0.0.0 will listen on any interface device.
+	// 0.0.0.0 will listen on any interface device.监听任何接口驱动
 	sourceMultiAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", port))
 
-	// libp2p.New constructs a new libp2p Host.
+	// libp2p.New constructs a new libp2p Host. 构造了一个新的libp2p主机。
 	// Other options can be added here.
 	return libp2p.New(
 		libp2p.ListenAddrs(sourceMultiAddr),
@@ -167,6 +176,7 @@ func makeHost(port int, randomness io.Reader) (host.Host, error) {
 	)
 }
 
+// 开启节点
 func startPeer(ctx context.Context, h host.Host, streamHandler network.StreamHandler) {
 	// Set a function as stream handler.
 	// This function is called when a peer connects, and starts a stream with this protocol.

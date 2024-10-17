@@ -13,7 +13,7 @@ import (
 	"github.com/libp2p/go-libp2p/examples/testutils"
 )
 
-func TestMain(t *testing.T) {
+func TestMain(m *testing.M) {
 	var h testutils.LogHarness
 	h.Expect("Waiting for incoming connection")
 	h.Expect("Established connection to destination")
