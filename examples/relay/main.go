@@ -38,10 +38,13 @@ func run() {
 		return
 	}
 
+	log.Println("PEER INFO:PEER1 ID:", unreachable1.ID(), "ADDR:", unreachable1.Addrs())
+
 	unreachable2, err := libp2p.New(
 		libp2p.NoListenAddrs,
 		libp2p.EnableRelay(),
 	)
+
 	if err != nil {
 		log.Printf("Failed to create unreachable2: %v", err)
 		return
@@ -51,6 +54,9 @@ func run() {
 
 	// Attempt to connect the unreachable hosts directly
 	// 尝试直接连接不可达的主机
+
+	log.Println("PEER INFO:PEER2 ID:", unreachable2.ID(), "ADDR:", unreachable2.Addrs())
+
 	unreachable2info := peer.AddrInfo{
 		ID:    unreachable2.ID(),
 		Addrs: unreachable2.Addrs(),
